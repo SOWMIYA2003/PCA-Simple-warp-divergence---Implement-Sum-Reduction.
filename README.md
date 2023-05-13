@@ -1640,6 +1640,9 @@ root@MidPC:/home/student/Desktop#
 ```
 ![3e16](https://github.com/SOWMIYA2003/PCA-Simple-warp-divergence---Implement-Sum-Reduction./assets/93427443/0aef7741-c7a8-4c34-b4b3-a701fb4e68fd)
 ![316](https://github.com/SOWMIYA2003/PCA-Simple-warp-divergence---Implement-Sum-Reduction./assets/93427443/4dbde075-1712-423b-a29d-adaeed5cef3f)
+```
+The time taken by the kernel reduceUnrolling16 is comparatively less to the kernal reduceUnrolling8 as each thread in the kernel reduceUnrolling16 handles 16 data blocks.
+```
 ## Result:
 Implementation of the kernel reduceUnrolling16 is done and the performance of kernal reduceUnrolling16 is comapared with kernal reduceUnrolling8 using proper metrics and events with nvprof.
 
