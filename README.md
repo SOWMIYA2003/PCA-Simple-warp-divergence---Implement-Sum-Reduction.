@@ -1619,5 +1619,8 @@ gpu Cmptnroll   elapsed 0.000305 sec gpu_sum: 2139353471 <<<grid 4096 block 512>
                     0.00%     300ns         1     300ns     300ns     300ns  cuDeviceGetUuid
 root@MidPC:/home/student/Desktop#
 ```
+![3e16](https://github.com/SOWMIYA2003/PCA-Simple-warp-divergence---Implement-Sum-Reduction./assets/93427443/0aef7741-c7a8-4c34-b4b3-a701fb4e68fd)
+![316](https://github.com/SOWMIYA2003/PCA-Simple-warp-divergence---Implement-Sum-Reduction./assets/93427443/4dbde075-1712-423b-a29d-adaeed5cef3f)
 ## Result:
+
 
