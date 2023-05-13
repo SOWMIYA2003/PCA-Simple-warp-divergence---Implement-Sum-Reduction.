@@ -781,5 +781,74 @@ int main(int argc, char **argv)
 }
 ```
 ## Output:
+```
+Password: 
+root@MidPC:/home/student# cd Desktop
+root@MidPC:/home/student/Desktop# nvcc --version
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2019 NVIDIA Corporation
+Built on Sun_Jul_28_19:07:16_PDT_2019
+Cuda compilation tools, release 10.1, V10.1.243
 
+root@MidPC:/home/student/Desktop# nvcc first.cu
+root@MidPC:/home/student/Desktop# ./a.out
+./a.out starting reduction at device 0: NVIDIA GeForce GTX 1660 SUPER     with array size 16777216  grid 32768 block 512
+cpu reduce      elapsed 0.032371 sec cpu_sum: 2139353471
+gpu Neighbored  elapsed 0.002427 sec gpu_sum: 2139353471 <<<grid 32768 block 512>>>
+gpu Neighbored2 elapsed 0.001394 sec gpu_sum: 2139353471 <<<grid 32768 block 512>>>
+gpu Interleaved elapsed 0.001279 sec gpu_sum: 2139353471 <<<grid 32768 block 512>>>
+gpu Unrolling2  elapsed 0.000799 sec gpu_sum: 2139353471 <<<grid 16384 block 512>>>
+gpu Unrolling4  elapsed 0.000478 sec gpu_sum: 2139353471 <<<grid 8192 block 512>>>
+gpu Unrolling8  elapsed 0.000282 sec gpu_sum: 2139353471 <<<grid 4096 block 512>>>
+gpu Unrolling16 elapsed 0.000338 sec gpu_sum: 2139353471 <<<grid 2048 block 512>>>
+gpu UnrollWarp8 elapsed 0.000300 sec gpu_sum: 2139353471 <<<grid 4096 block 512>>>
+gpu Cmptnroll8  elapsed 0.000375 sec gpu_sum: 2139353471 <<<grid 4096 block 512>>>
+gpu Cmptnroll   elapsed 0.000371 sec gpu_sum: 2139353471 <<<grid 4096 block 512>>>
+
+root@MidPC:/home/student/Desktop# nvprof ./a.out
+==7688== NVPROF is profiling process 7688, command: ./a.out
+./a.out starting reduction at device 0: NVIDIA GeForce GTX 1660 SUPER     with array size 16777216  grid 32768 block 512
+cpu reduce      elapsed 0.036847 sec cpu_sum: 2139353471
+gpu Neighbored  elapsed 0.002443 sec gpu_sum: 2139353471 <<<grid 32768 block 512>>>
+gpu Neighbored2 elapsed 0.001541 sec gpu_sum: 2139353471 <<<grid 32768 block 512>>>
+gpu Interleaved elapsed 0.001410 sec gpu_sum: 2139353471 <<<grid 32768 block 512>>>
+gpu Unrolling2  elapsed 0.000833 sec gpu_sum: 2139353471 <<<grid 16384 block 512>>>
+gpu Unrolling4  elapsed 0.000494 sec gpu_sum: 2139353471 <<<grid 8192 block 512>>>
+gpu Unrolling8  elapsed 0.000293 sec gpu_sum: 2139353471 <<<grid 4096 block 512>>>
+gpu Unrolling16 elapsed 0.000280 sec gpu_sum: 2139353471 <<<grid 2048 block 512>>>
+gpu UnrollWarp8 elapsed 0.000315 sec gpu_sum: 2139353471 <<<grid 4096 block 512>>>
+gpu Cmptnroll8  elapsed 0.000383 sec gpu_sum: 2139353471 <<<grid 4096 block 512>>>
+gpu Cmptnroll   elapsed 0.000305 sec gpu_sum: 2139353471 <<<grid 4096 block 512>>>
+==7688== Profiling application: ./a.out
+==7688== Profiling result:
+            Type  Time(%)      Time     Calls       Avg       Min       Max  Name
+ GPU activities:   88.35%  58.554ms        10  5.8554ms  5.7410ms  6.3002ms  [CUDA memcpy HtoD]
+                    3.64%  2.4101ms         1  2.4101ms  2.4101ms  2.4101ms  reduceNeighbored(int*, int*, unsigned int)
+                    2.18%  1.4422ms         1  1.4422ms  1.4422ms  1.4422ms  reduceNeighboredLess(int*, int*, unsigned int)
+                    1.98%  1.3134ms         1  1.3134ms  1.3134ms  1.3134ms  reduceInterleaved(int*, int*, unsigned int)
+                    1.11%  734.65us         1  734.65us  734.65us  734.65us  reduceUnrolling2(int*, int*, unsigned int)
+                    0.60%  395.34us         1  395.34us  395.34us  395.34us  reduceUnrolling4(int*, int*, unsigned int)
+                    0.44%  289.27us         1  289.27us  289.27us  289.27us  reduceUnrollWarps8(int*, int*, unsigned int)
+                    0.43%  287.73us         1  287.73us  287.73us  287.73us  reduceCompleteUnrollWarps8(int*, int*, unsigned int)
+                    0.43%  282.13us         1  282.13us  282.13us  282.13us  void reduceCompleteUnroll<unsigned int=512>(int*, int*, unsigned int)
+                    0.40%  267.73us         1  267.73us  267.73us  267.73us  reduceUnrolling8(int*, int*, unsigned int)
+                    0.37%  248.24us         1  248.24us  248.24us  248.24us  reduceUnrolling16(int*, int*, unsigned int)
+                    0.08%  54.045us        10  5.4040us  1.7280us  11.071us  [CUDA memcpy DtoH]
+      API calls:   61.31%  178.75ms         2  89.376ms  119.78us  178.63ms  cudaMalloc
+                   20.21%  58.919ms        20  2.9460ms  19.809us  6.3449ms  cudaMemcpy
+                   15.05%  43.863ms         1  43.863ms  43.863ms  43.863ms  cudaDeviceReset
+                    3.01%  8.7779ms        20  438.89us  71.676us  2.4101ms  cudaDeviceSynchronize
+                    0.09%  255.26us        10  25.525us  20.529us  30.148us  cudaLaunchKernel
+                    0.08%  246.24us        97  2.5380us     230ns  105.41us  cuDeviceGetAttribute
+                    0.08%  243.18us         1  243.18us  243.18us  243.18us  cuDeviceTotalMem
+                    0.08%  220.22us         2  110.11us  47.098us  173.12us  cudaFree
+                    0.07%  210.51us         1  210.51us  210.51us  210.51us  cudaGetDeviceProperties
+                    0.01%  42.258us         1  42.258us  42.258us  42.258us  cuDeviceGetName
+                    0.00%  5.0400us         2  2.5200us     240ns  4.8000us  cuDeviceGet
+                    0.00%  4.9200us         1  4.9200us  4.9200us  4.9200us  cuDeviceGetPCIBusId
+                    0.00%  2.8700us         1  2.8700us  2.8700us  2.8700us  cudaSetDevice
+                    0.00%  2.6700us         3     890ns     240ns  2.0700us  cuDeviceGetCount
+                    0.00%     300ns         1     300ns     300ns     300ns  cuDeviceGetUuid
+root@MidPC:/home/student/Desktop#
+```
 ## Result:
