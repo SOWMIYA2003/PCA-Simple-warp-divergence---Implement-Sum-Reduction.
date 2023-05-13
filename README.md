@@ -1546,6 +1546,8 @@ gpu Cmptnroll   elapsed 0.000387 sec gpu_sum: 2139353471 <<<grid 4096 block 512>
                     0.00%     370ns         1     370ns     370ns     370ns  cuDeviceGetUuid
 root@MidPC:/home/student/Desktop#
 ```
+![38](https://github.com/SOWMIYA2003/PCA-Simple-warp-divergence---Implement-Sum-Reduction./assets/93427443/a455d9ab-c0f3-49b3-97c2-db52edce1fbb)
+![3e8](https://github.com/SOWMIYA2003/PCA-Simple-warp-divergence---Implement-Sum-Reduction./assets/93427443/ebadaa00-2775-41d3-a081-d54408ffa334)
 ### kernel reduceUnrolling16
 ```
 Password: 
@@ -1618,3 +1620,4 @@ gpu Cmptnroll   elapsed 0.000305 sec gpu_sum: 2139353471 <<<grid 4096 block 512>
 root@MidPC:/home/student/Desktop#
 ```
 ## Result:
+
