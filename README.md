@@ -13,7 +13,7 @@ Introduce a function named 'reduceNeighbored' to implement Neighbored Pair with 
 #### Step 4 :
 Introduce optimizations such as unrolling to reduce divergence.
 #### Step 5 :
-Declare three global function named 'reduceUnrolling2' , 'reduceUnrolling4' , 'reduceUnrolling8'  and then set the thread ID , convert global data pointer to the local pointer of the block , perform in-place reduction in global memory ,finally write the result of the block to global memory in all the three function respectively.
+Declare three global function named 'reduceUnrolling2' , 'reduceUnrolling4' , 'reduceUnrolling8' , 'reduceUnrolling16' and then set the thread ID , convert global data pointer to the local pointer of the block , perform in-place reduction in global memory ,finally write the result of the block to global memory in all the three function respectively.
 #### Step 6 :
 Declare functions to unroll the warp.
 Declare a global function named 'reduceUnrollWarps8' and then set the thread ID , convert global data pointer to the local pointer of the block , perform in-place reduction in global memory , unroll the  warp ,finally write the result of the block to global memory infunction .
