@@ -759,7 +759,7 @@ int recursiveReduce(int *data, int const size)
 }
 
 // Neighbored Pair Implementation with divergence
-_global_ void reduceNeighbored (int *g_idata, int *g_odata, unsigned int n)
+__global__ void reduceNeighbored (int *g_idata, int *g_odata, unsigned int n)
 {
     // set thread ID
     unsigned int tid = threadIdx.x;
@@ -788,7 +788,7 @@ _global_ void reduceNeighbored (int *g_idata, int *g_odata, unsigned int n)
 }
 
 // Neighbored Pair Implementation with less divergence
-_global_ void reduceNeighboredLess (int *g_idata, int *g_odata,
+__global__ void reduceNeighboredLess (int *g_idata, int *g_odata,
                                       unsigned int n)
 {
     // set thread ID
@@ -821,7 +821,7 @@ _global_ void reduceNeighboredLess (int *g_idata, int *g_odata,
 }
 
 // Interleaved Pair Implementation with less divergence
-_global_ void reduceInterleaved (int *g_idata, int *g_odata, unsigned int n)
+__global__ void reduceInterleaved (int *g_idata, int *g_odata, unsigned int n)
 {
     // set thread ID
     unsigned int tid = threadIdx.x;
@@ -848,7 +848,7 @@ _global_ void reduceInterleaved (int *g_idata, int *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = idata[0];
 }
 
-_global_ void reduceUnrolling2 (int *g_idata, int *g_odata, unsigned int n)
+__global__ void reduceUnrolling2 (int *g_idata, int *g_odata, unsigned int n)
 {
     // set thread ID
     unsigned int tid = threadIdx.x;
@@ -878,7 +878,7 @@ _global_ void reduceUnrolling2 (int *g_idata, int *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = idata[0];
 }
 
-_global_ void reduceUnrolling4 (int *g_idata, int *g_odata, unsigned int n)
+__global__ void reduceUnrolling4 (int *g_idata, int *g_odata, unsigned int n)
 {
     // set thread ID
     unsigned int tid = threadIdx.x;
@@ -917,7 +917,7 @@ _global_ void reduceUnrolling4 (int *g_idata, int *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = idata[0];
 }
 
-_global_ void reduceUnrolling8 (int *g_idata, int *g_odata, unsigned int n)
+__global__ void reduceUnrolling8 (int *g_idata, int *g_odata, unsigned int n)
 {
     // set thread ID
     unsigned int tid = threadIdx.x;
@@ -968,7 +968,7 @@ _global_ void reduceUnrolling8 (int *g_idata, int *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = idata[0];
 }
 
-_global_ void reduceUnrolling16 (int *g_idata, int *g_odata, unsigned int n)
+__global__ void reduceUnrolling16 (int *g_idata, int *g_odata, unsigned int n)
 {
     // set thread ID
     unsigned int tid = threadIdx.x;
@@ -1018,7 +1018,7 @@ _global_ void reduceUnrolling16 (int *g_idata, int *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = idata[0];
 }
 
-_global_ void reduceUnrollWarps8 (int *g_idata, int *g_odata, unsigned int n)
+__global__ void reduceUnrollWarps8 (int *g_idata, int *g_odata, unsigned int n)
 {
     // set thread ID
     unsigned int tid = threadIdx.x;
@@ -1071,7 +1071,7 @@ _global_ void reduceUnrollWarps8 (int *g_idata, int *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = idata[0];
 }
 
-_global_ void reduceCompleteUnrollWarps8 (int *g_idata, int *g_odata,
+__global__ void reduceCompleteUnrollWarps8 (int *g_idata, int *g_odata,
         unsigned int n)
 {
     // set thread ID
@@ -1131,7 +1131,7 @@ _global_ void reduceCompleteUnrollWarps8 (int *g_idata, int *g_odata,
 }
 
 template <unsigned int iBlockSize>
-_global_ void reduceCompleteUnroll(int *g_idata, int *g_odata,
+__global__ void reduceCompleteUnroll(int *g_idata, int *g_odata,
                                      unsigned int n)
 {
     // set thread ID
@@ -1190,7 +1190,7 @@ _global_ void reduceCompleteUnroll(int *g_idata, int *g_odata,
     if (tid == 0) g_odata[blockIdx.x] = idata[0];
 }
 
-_global_ void reduceUnrollWarps (int *g_idata, int *g_odata, unsigned int n)
+__global__ void reduceUnrollWarps (int *g_idata, int *g_odata, unsigned int n)
 {
     // set thread ID
     unsigned int tid = threadIdx.x;
