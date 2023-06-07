@@ -33,121 +33,7 @@ Reg No : 212221230106
 #include <cuda_runtime.h>
 #include <stdio.h>
 
-/*
- * This code implements the interleaved and neighbor-paired approaches to
- * parallel reduction in CUDA. For this example, the sum operation is used. A
- * variety of optimizations on parallel reduction aimed at reducing divergence
- * are also demonstrated, such as unrolling.
- */
 
-// Recursive Implementation of Interleaved Pair Approach
-int recursiveReduce(int *data, int const size)
-{
-    // terminate check
-    if (size == 1) return data[0];
-
-    // renew the stride
-    int const stride = size / 2;
-
-    // in-place reduction
-    for (int i = 0; i < stride; i++)
-    {
-        data[i] += data[i + stride];
-    }
-
-    // call recursively
-    return recursiveReduce(data, stride);
-}
-
-// Neighbored Pair Implementation with divergence
-__global__ void reduceNeighbored (int *g_idata, int *g_odata, unsigned int n)
-{
-    // set thread ID
-    unsigned int tid = threadIdx.x;
-    unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
-    // convert global data pointer to the local pointer of this block
-    int *idata = g_idata + blockIdx.x * blockDim.x;
-
-    // boundary check
-    if (idx >= n) return;
-
-    // in-place reduction in global memory
-    for (int stride = 1; stride < blockDim.x; stride *= 2)
-    {
-        if ((tid % (2 * stride)) == 0)
-        {
-            idata[tid] += idata[tid + stride];
-        }
-
-        // synchronize within threadblock
-        __syncthreads();
-    }
-
-    // write result for this block to global mem
-    if (tid == 0) g_odata[blockIdx.x] = idata[0];
-}
-
-// Neighbored Pair Implementation with less divergence
-__global__ void reduceNeighboredLess (int *g_idata, int *g_odata,
-                                      unsigned int n)
-{
-    // set thread ID
-    unsigned int tid = threadIdx.x;
-    unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
-    // convert global data pointer to the local pointer of this block
-    int *idata = g_idata + blockIdx.x * blockDim.x;
-
-    // boundary check
-    if(idx >= n) return;
-
-    // in-place reduction in global memory
-    for (int stride = 1; stride < blockDim.x; stride *= 2)
-    {
-        // convert tid into local array index
-        int index = 2 * stride * tid;
-
-        if (index < blockDim.x)
-        {
-            idata[index] += idata[index + stride];
-        }
-
-        // synchronize within threadblock
-        __syncthreads();
-    }
-
-    // write result for this block to global mem
-    if (tid == 0) g_odata[blockIdx.x] = idata[0];
-}
-
-// Interleaved Pair Implementation with less divergence
-__global__ void reduceInterleaved (int *g_idata, int *g_odata, unsigned int n)
-{
-    // set thread ID
-    unsigned int tid = threadIdx.x;
-    unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
-    // convert global data pointer to the local pointer of this block
-    int *idata = g_idata + blockIdx.x * blockDim.x;
-
-    // boundary check
-    if(idx >= n) return;
-
-    // in-place reduction in global memory
-    for (int stride = blockDim.x / 2; stride > 0; stride >>= 1)
-    {
-        if (tid < stride)
-        {
-            idata[tid] += idata[tid + stride];
-        }
-
-        __syncthreads();
-    }
-
-    // write result for this block to global mem
-    if (tid == 0) g_odata[blockIdx.x] = idata[0];
-}
 
 __global__ void reduceUnrolling8 (int *g_idata, int *g_odata, unsigned int n)
 {
@@ -422,46 +308,6 @@ __global__ void reduceCompleteUnroll(int *g_idata, int *g_odata,
     if (tid == 0) g_odata[blockIdx.x] = idata[0];
 }
 
-__global__ void reduceUnrollWarps (int *g_idata, int *g_odata, unsigned int n)
-{
-    // set thread ID
-    unsigned int tid = threadIdx.x;
-    unsigned int idx = blockIdx.x * blockDim.x * 2 + threadIdx.x;
-
-    // convert global data pointer to the local pointer of this block
-    int *idata = g_idata + blockIdx.x * blockDim.x * 2;
-
-    // unrolling 2
-    if (idx + blockDim.x < n) g_idata[idx] += g_idata[idx + blockDim.x];
-
-    __syncthreads();
-
-    // in-place reduction in global memory
-    for (int stride = blockDim.x / 2; stride > 32; stride >>= 1)
-    {
-        if (tid < stride)
-        {
-            idata[tid] += idata[tid + stride];
-        }
-
-        // synchronize within threadblock
-        __syncthreads();
-    }
-
-    // unrolling last warp
-    if (tid < 32)
-    {
-        volatile int *vsmem = idata;
-        vsmem[tid] += vsmem[tid + 32];
-        vsmem[tid] += vsmem[tid + 16];
-        vsmem[tid] += vsmem[tid +  8];
-        vsmem[tid] += vsmem[tid +  4];
-        vsmem[tid] += vsmem[tid +  2];
-        vsmem[tid] += vsmem[tid +  1];
-    }
-
-    if (tid == 0) g_odata[blockIdx.x] = idata[0];
-}
 
 int main(int argc, char **argv)
 {
@@ -520,54 +366,6 @@ int main(int argc, char **argv)
     int cpu_sum = recursiveReduce (tmp, size);
     iElaps = seconds() - iStart;
     printf("cpu reduce      elapsed %f sec cpu_sum: %d\n", iElaps, cpu_sum);
-
-    // kernel 1: reduceNeighbored
-    CHECK(cudaMemcpy(d_idata, h_idata, bytes, cudaMemcpyHostToDevice));
-    CHECK(cudaDeviceSynchronize());
-    iStart = seconds();
-    reduceNeighbored<<<grid, block>>>(d_idata, d_odata, size);
-    CHECK(cudaDeviceSynchronize());
-    iElaps = seconds() - iStart;
-    CHECK(cudaMemcpy(h_odata, d_odata, grid.x * sizeof(int),
-                     cudaMemcpyDeviceToHost));
-    gpu_sum = 0;
-
-    for (int i = 0; i < grid.x; i++) gpu_sum += h_odata[i];
-
-    printf("gpu Neighbored  elapsed %f sec gpu_sum: %d <<<grid %d block "
-           "%d>>>\n", iElaps, gpu_sum, grid.x, block.x);
-
-    // kernel 2: reduceNeighbored with less divergence
-    CHECK(cudaMemcpy(d_idata, h_idata, bytes, cudaMemcpyHostToDevice));
-    CHECK(cudaDeviceSynchronize());
-    iStart = seconds();
-    reduceNeighboredLess<<<grid, block>>>(d_idata, d_odata, size);
-    CHECK(cudaDeviceSynchronize());
-    iElaps = seconds() - iStart;
-    CHECK(cudaMemcpy(h_odata, d_odata, grid.x * sizeof(int),
-                     cudaMemcpyDeviceToHost));
-    gpu_sum = 0;
-
-    for (int i = 0; i < grid.x; i++) gpu_sum += h_odata[i];
-
-    printf("gpu Neighbored2 elapsed %f sec gpu_sum: %d <<<grid %d block "
-           "%d>>>\n", iElaps, gpu_sum, grid.x, block.x);
-
-    // kernel 3: reduceInterleaved
-    CHECK(cudaMemcpy(d_idata, h_idata, bytes, cudaMemcpyHostToDevice));
-    CHECK(cudaDeviceSynchronize());
-    iStart = seconds();
-    reduceInterleaved<<<grid, block>>>(d_idata, d_odata, size);
-    CHECK(cudaDeviceSynchronize());
-    iElaps = seconds() - iStart;
-    CHECK(cudaMemcpy(h_odata, d_odata, grid.x * sizeof(int),
-                     cudaMemcpyDeviceToHost));
-    gpu_sum = 0;
-
-    for (int i = 0; i < grid.x; i++) gpu_sum += h_odata[i];
-
-    printf("gpu Interleaved elapsed %f sec gpu_sum: %d <<<grid %d block "
-           "%d>>>\n", iElaps, gpu_sum, grid.x, block.x);
     
     // kernel 6: reduceUnrolling8
     CHECK(cudaMemcpy(d_idata, h_idata, bytes, cudaMemcpyHostToDevice));
@@ -666,7 +464,6 @@ int main(int argc, char **argv)
         reduceCompleteUnroll<64><<<grid.x / 8, block>>>(d_idata, d_odata, size);
         break;
     }
-
     CHECK(cudaDeviceSynchronize());
     iElaps = seconds() - iStart;
     CHECK(cudaMemcpy(h_odata, d_odata, grid.x / 8 * sizeof(int),
@@ -682,7 +479,7 @@ int main(int argc, char **argv)
     // free host memory
     free(h_idata);
     free(h_odata);
-
+    
     // free device memory
     CHECK(cudaFree(d_idata));
     CHECK(cudaFree(d_odata));
